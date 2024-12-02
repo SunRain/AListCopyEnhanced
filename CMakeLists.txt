@@ -42,13 +42,17 @@ else()
     else()
         add_executable(AListCopyEnhanced
             ${PROJECT_SOURCES}
+            PrivateConst.h
         )
     endif()
 
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(AListCopyEnhanced PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(AListCopyEnhanced
+    PRIVATE
+    Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Network)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
