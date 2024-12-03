@@ -16,89 +16,90 @@
 #include <QNetworkAccessManager>
 
 
-class CopyObjectData : public QSharedData
-{
-public:
-    CopyObjectData()
-    {}
+// class CopyObjectData : public QSharedData
+// {
+// public:
+//     CopyObjectData()
+//     {}
 
-    QString srcDir;
-    QString dstDir;
-    QList<QJsonObject> fileList;
-};
+//     QString srcDir;
+//     QString dstDir;
+//     QList<QJsonObject> fileList;
+// };
 
-class CopyObject
-{
-public:
-    CopyObject()
-    {
-        d = new CopyObjectData;
-    }
-    CopyObject(const QString &srcDir, const QString &dstDir, const QList<QJsonObject> &fileList = QList<QJsonObject>())
-    {
-        d = new CopyObjectData;
-        d->srcDir = srcDir;
-        d->dstDir = dstDir;
-        d->fileList = fileList;
-    }
-    CopyObject(const CopyObject &other)
-        : d(other.d)
-    {
+// class CopyObject
+// {
+// public:
+//     CopyObject()
+//     {
+//         d = new CopyObjectData;
+//     }
+//     CopyObject(const QString &srcDir, const QString &dstDir, const QList<QJsonObject> &fileList = QList<QJsonObject>())
+//     {
+//         d = new CopyObjectData;
+//         d->srcDir = srcDir;
+//         d->dstDir = dstDir;
+//         d->fileList = fileList;
+//     }
+//     CopyObject(const CopyObject &other)
+//         : d(other.d)
+//     {
 
-    }
-    bool operator==(const CopyObject &other) const
-    {
-        return d->srcDir        == other.d->srcDir
-                && d->dstDir    == other.d->dstDir
-                && d->fileList  == other.d->fileList;
-    }
-    bool operator != (const CopyObject &other) const
-    {
-        return !operator ==(other);
-    }
-    CopyObject &operator = (const CopyObject &other)
-    {
-        if (this != &other)
-             d.operator =(other.d);
-         return *this;
-    }
+//     }
+//     bool operator==(const CopyObject &other) const
+//     {
+//         return d->srcDir        == other.d->srcDir
+//                 && d->dstDir    == other.d->dstDir
+//                 && d->fileList  == other.d->fileList;
+//     }
+//     bool operator != (const CopyObject &other) const
+//     {
+//         return !operator ==(other);
+//     }
+//     CopyObject &operator = (const CopyObject &other)
+//     {
+//         if (this != &other)
+//              d.operator =(other.d);
+//          return *this;
+//     }
 
-    QString srcDir() const
-    {
-        return d->srcDir;
-    }
-    void setSrcDir(const QString &newSrcDir)
-    {
-        d->srcDir = newSrcDir;
-    }
+//     QString srcDir() const
+//     {
+//         return d->srcDir;
+//     }
+//     void setSrcDir(const QString &newSrcDir)
+//     {
+//         d->srcDir = newSrcDir;
+//     }
 
-    QString dstDir() const
-    {
-        return d->srcDir;
-    }
-    void setDstDir(const QString &newDstDir)
-    {
-        d->srcDir = newDstDir;
-    }
-    QList<QJsonObject> fileList() const
-    {
-        return d->fileList;
-    }
-    void setFileList(const QList<QJsonObject> &newFileList)
-    {
-        d->fileList = newFileList;
-    }
-    void appendFile(const QJsonObject &obj)
-    {
-        if (!d->fileList.contains(obj)) {
-            d->fileList.append(obj);
-        }
-    }
-private:
-     QSharedDataPointer<CopyObjectData> d;
-};
+//     QString dstDir() const
+//     {
+//         return d->srcDir;
+//     }
+//     void setDstDir(const QString &newDstDir)
+//     {
+//         d->srcDir = newDstDir;
+//     }
+//     QList<QJsonObject> fileList() const
+//     {
+//         return d->fileList;
+//     }
+//     void setFileList(const QList<QJsonObject> &newFileList)
+//     {
+//         d->fileList = newFileList;
+//     }
+//     void appendFile(const QJsonObject &obj)
+//     {
+//         if (!d->fileList.contains(obj)) {
+//             d->fileList.append(obj);
+//         }
+//     }
+// private:
+//      QSharedDataPointer<CopyObjectData> d;
+// };
 
 
+class FsGetThread;
 
 class MainWindow : public QMainWindow
 {
@@ -123,6 +124,8 @@ private:
     bool chkServerAndToken() const;
     void processSrcDir();
     void processDstDir();
+    void processFsGet(const QString &dir);
+    QJsonObject parseFsGetReply(const QByteArray &replyData) const;
 
 
 
@@ -138,6 +141,8 @@ private:
 
     QNetworkAccessManager *m_networkMgr;
 
+    FsGetThread *m_srcProcThread;
+
     DuplicateOption m_dupOpt;
 
     QString m_server;
@@ -146,8 +151,11 @@ private:
     // QList<CopyObject> m_srcFileList;
     // QList<CopyObject> m_dstFileList;
     QMap<QString, QList<QJsonObject>> m_srcFileMap;
-    QList<CopyObject> m_srcDirList;
-    QList<CopyObject> m_dstDirList;
+    QMap<QString, QList<QJsonObject>> m_dstFileMap;
+    // QList<CopyObject> m_srcDirList;
+    // QList<CopyObject> m_dstDirList;
+    QStringList m_srcDirList;
+    QStringList m_dstDirList;
 
 };
 #endif // MAINWINDOW_H
