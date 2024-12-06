@@ -9,8 +9,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools Network)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core Widgets LinguistTools Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools Network)
+
+qt_standard_project_setup(REQUIRES 6.5)
 
 set(TS_FILES AListCopyEnhanced_zh_CN.ts)
 
@@ -25,6 +27,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(AListCopyEnhanced
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        PrivateConst.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET AListCopyEnhanced APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -51,6 +54,7 @@ endif()
 
 target_link_libraries(AListCopyEnhanced
     PRIVATE
+    Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Network)
 
