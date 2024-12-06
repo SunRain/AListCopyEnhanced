@@ -13,6 +13,7 @@
 #include <QMutexLocker>
 #include <QWaitCondition>
 
+#include <QApplication>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QRadioButton>
@@ -402,6 +403,11 @@ void MainWindow::processDiff()
     m_stateFlag &= ~StateFlag::ProcDstDirFinish;
     m_stateFlag &= ~StateFlag::ProcSrcDirFinish;
 
+    m_logWidget->clear();
+
+    m_srcFileMap.clear();
+    m_dstFileMap.clear();
+
     m_srcProcThread->appendDir(m_srcPathEdt->text());
     m_dstProcThread->appendDir(m_dstPathEdt->text());
 }
@@ -460,8 +466,9 @@ void MainWindow::postCopy()
                         cpList.append(it);
                     } else {
                         qDebug()<<Q_FUNC_INFO<<"NoOverwrite "<<it;
+                        toLogView(QString("NoOverwrite %1/%2").arg(dstPath, name));
+                        qApp->processEvents();
                     }
-
                 }
                 else if (DuplicateOption::OverwriteWhenNewCreated == m_dupOpt) {
                     //TODO OverwriteWhenNewCreated
