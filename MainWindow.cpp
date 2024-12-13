@@ -141,10 +141,18 @@ FsReqeustThread<T>::~FsReqeustThread()
 }
 
 template<class T>
-void FsReqeustThread<T>::appendDir(const T &fullDir)
+void FsReqeustThread<T>::appendDir(const T &fullDir, bool pollImmediately)
 {
     const QMutexLocker locker(&m_mutex);
     m_dataList.append(fullDir);
+    if (pollImmediately) {
+        m_dirWaitCond.wakeAll();
+    }
+}
+
+template<class T>
+void FsReqeustThread<T>::poll()
+{
     m_dirWaitCond.wakeAll();
 }
 
@@ -434,6 +442,7 @@ void MainWindow::postCopy()
         return;
     }
     toLogView(QString("Copy from %1 ==> %2").arg(m_srcRoot, m_dstRoot));
+    qDebug()<<Q_FUNC_INFO<<(QString("Copy from %1 ==> %2").arg(m_srcRoot, m_dstRoot));
 
     // m_copyList.clear();
     m_cpFailureList.clear();
@@ -441,11 +450,16 @@ void MainWindow::postCopy()
     for (const auto &[k,v] : m_srcFileMap.asKeyValueRange()) {
         //Use mid, not sliced, as using m_srcRoot.size()+1(EG. "rootpath/")
         const QString srcSubPath    = k.mid(m_srcRoot.size()+1);
-        const QString dstPath       = QString("%1/%2").arg(m_dstRoot, srcSubPath);
+        const QString dstPath       = srcSubPath.isEmpty() ? m_dstRoot : QString("%1/%2").arg(m_dstRoot, srcSubPath);
+
+        // qDebug()<<Q_FUNC_INFO<<"m_srcRoot "<<m_srcRoot
+        //        <<", srcSubPath "<<srcSubPath
+        //       <<", dstPath "<<dstPath;
+
 
         if (!m_dstFileMap.contains(dstPath) || (DuplicateOption::OverwriteUnconditionally == m_dupOpt)) {
             CopyObject co(k, dstPath, v);
-            m_copyThread->appendDir(co);
+            m_copyThread->appendDir(co, false);
             continue;
         }
 
@@ -462,13 +476,9 @@ void MainWindow::postCopy()
                     cpList.append(it);
                 }
                 else if (DuplicateOption::NoOverwrite == m_dupOpt) {
-                    if (!dstObjNameMap.contains(name)) {
-                        cpList.append(it);
-                    } else {
-                        qDebug()<<Q_FUNC_INFO<<"NoOverwrite "<<it;
-                        toLogView(QString("NoOverwrite %1/%2").arg(dstPath, name));
-                        qApp->processEvents();
-                    }
+                    qDebug()<<Q_FUNC_INFO<<"NoOverwrite "<<QString("NoOverwrite %1/%2").arg(dstPath, name);
+                    toLogView(QString("NoOverwrite %1/%2").arg(dstPath, name));
+                    qApp->processEvents();
                 }
                 else if (DuplicateOption::OverwriteWhenNewCreated == m_dupOpt) {
                     //TODO OverwriteWhenNewCreated
@@ -480,8 +490,9 @@ void MainWindow::postCopy()
             }
         }
         CopyObject co(k, dstPath, cpList);
-        m_copyThread->appendDir(co);
+        m_copyThread->appendDir(co, false);
     }
+    m_copyThread->poll();
 }
 
 bool MainWindow::chkServerAndToken() const

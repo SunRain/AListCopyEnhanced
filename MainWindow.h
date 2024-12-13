@@ -71,7 +71,9 @@ public:
     FsReqeustThread(QObject *parent = nullptr);
     virtual ~FsReqeustThread();
 
-    void appendDir(const T &fullDir);
+    void appendDir(const T &fullDir, bool pollImmediately = true);
+
+    void poll();
 
     void requestNext();
 
